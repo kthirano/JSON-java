@@ -41,13 +41,7 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.json.XML;
-import org.json.XMLParserConfiguration;
-import org.json.XMLXsiTypeConverter;
+import org.json.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -1068,4 +1062,445 @@ public class XMLTest {
             fail("Expected to be unable to modify the config");
         } catch (Exception ignored) { }
     }
+
+    @Test
+    public void testXMLExtractSurface(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/0");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                JSONObject expected = new JSONObject("{\"book\":{\"author\":\"Gambardella, Matthew\",\"price\":44.95,\"genre\":\"Computer\",\"description\":\"An in-depth look at creating applications \\r\\n      with XML.\",\"id\":\"bk101\",\"title\":\"XML Developer's Guide\",\"publish_date\":\"2000-10-01\"}}");
+                assertEquals("Small1.xml book0", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLExtractEquals(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/0/id");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                JSONObject expected = new JSONObject("{\"id\":\"bk101\"}");
+                assertEquals("Small1.xml book0 id expected bk101", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLExtractNested(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/0/price");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                JSONObject expected = new JSONObject("{\"price\":44.95}");
+                assertEquals("Small1.xml book0 price expected 44.95", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLExtractIDWithSigArrayIndex(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/1/id");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                JSONObject expected = new JSONObject("{\"id\":\"bk102\"}");
+                assertEquals("Small1.xml book1 id expected bk102", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLExtractNestedWithSigArrayIndex(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/2/price");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                JSONObject expected = new JSONObject("{\"price\":5.95}");
+                assertEquals("Small1.xml book2 price expected 5.95", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLExtractRootXML(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                InputStream xmlStream2 = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader2 = new InputStreamReader(xmlStream2);
+                JSONObject expected = XML.toJSONObject(xmlReader2);
+                assertEquals("Small1.xml expected original", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLExtractEmptyPointer(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                InputStream xmlStream2 = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader2 = new InputStreamReader(xmlStream2);
+                JSONObject expected = XML.toJSONObject(xmlReader2);
+                assertEquals("Small1.xml should just return entire XML", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLReplaceRoot(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr,new JSONObject("{\"price\":5.95}"));
+                InputStream xmlStream2 = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader2 = new InputStreamReader(xmlStream2);
+                JSONObject expected = new JSONObject("{\"catalog\":{\"price\":5.95}}");
+                assertEquals("Small1.xml replacing catalog contents", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLReplaceNested(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("simple1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/foo/bar");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr,new JSONObject("{\"bar\":5}"));
+                InputStream xmlStream2 = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader2 = new InputStreamReader(xmlStream2);
+                JSONObject expected = new JSONObject("{\"foo\":{\"bar\":{\"bar\":5},\"baar\":2}}");
+                assertEquals("Small1.xml replacing catalog contents", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLReplaceNested2(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("simple1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/foo/baar");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr,new JSONObject("{\"bar\":5}"));
+                InputStream xmlStream2 = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader2 = new InputStreamReader(xmlStream2);
+                JSONObject expected = new JSONObject("{\"foo\":{\"bar\":1234,\"baar\":{\"bar\":5}}}");
+                assertEquals("Small1.xml replacing catalog contents", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLReplaceArrayElementZero(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/0");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr,new JSONObject("{\"price\":5.95}"));
+                JSONObject expected = new JSONObject(
+                        "{\"catalog\":" +
+                                "{\"book\":" +
+                                "[{\"price\":5.95}," +
+                                "{\"author\":\"Ralls, Kim\",\"price\":5.95,\"genre\":\"Fantasy\"," +
+                                    "\"description\":\"A former architect battles corporate zombies, \\r\\n      " +
+                                    "an evil sorceress, and her own childhood to become queen \\r\\n      of the world.\"," +
+                                    "\"id\":\"bk102\",\"title\":\"Midnight Rain\",\"publish_date\":\"2000-12-16\"}," +
+                                "{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\"," +
+                                    "\"description\":\"After the collapse of a nanotechnology \\r\\n      " +
+                                    "society in England, the young survivors lay the \\r\\n      " +
+                                    "foundation for a new society.\",\"id\":\"bk103\",\"title\":\"Maeve Ascendant\"," +
+                                    "\"publish_date\":\"2000-11-17\"}," +
+                                "{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\"," +
+                                    "\"description\":\"In post-apocalypse England, the mysterious \\r\\n      " +
+                                    "agent known only as Oberon helps to create a new life \\r\\n      " +
+                                    "for the inhabitants of London. Sequel to Maeve \\r\\n      " +
+                                    "Ascendant.\",\"id\":\"bk104\",\"title\":\"Oberon's Legacy\"," +
+                                    "\"publish_date\":\"2001-03-10\"}," +
+                                "{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\"," +
+                                    "\"description\":\"The two daughters of Maeve, half-sisters, \\r\\n      " +
+                                    "battle one another for control of England. Sequel to \\r\\n      Oberon's Legacy.\"," +
+                                    "\"id\":\"bk105\",\"title\":\"The Sundered Grail\",\"publish_date\":\"2001-09-10\"}," +
+                                "{\"author\":\"Randall, Cynthia\",\"price\":4.95,\"genre\":\"Romance\"," +
+                                    "\"description\":\"When Carla meets Paul at an ornithology \\r\\n      " +
+                                    "conference, tempers fly as feathers get ruffled.\",\"id\":\"bk106\"," +
+                                    "\"title\":\"Lover Birds\",\"publish_date\":\"2000-09-02\"}," +
+                                "{\"author\":\"Thurman, Paula\",\"price\":4.95,\"genre\":\"Romance\"," +
+                                    "\"description\":\"A deep sea diver finds true love twenty \\r\\n      " +
+                                    "thousand leagues beneath the sea.\",\"id\":\"bk107\",\"title\":\"Splish Splash\"," +
+                                    "\"publish_date\":\"2000-11-02\"}," +
+                                "{\"author\":\"Knorr, Stefan\",\"price\":4.95,\"genre\":\"Horror\"," +
+                                    "\"description\":\"An anthology of horror stories about roaches,\\r\\n      " +
+                                    "centipedes, scorpions  and other insects.\",\"id\":\"bk108\"," +
+                                    "\"title\":\"Creepy Crawlies\",\"publish_date\":\"2000-12-06\"}," +
+                                "{\"author\":\"Kress, Peter\",\"price\":6.95,\"genre\":\"Science Fiction\"," +
+                                    "\"description\":\"After an inadvertant trip through a Heisenberg\\r\\n      " +
+                                    "Uncertainty Device, James Salway discovers the problems \\r\\n      " +
+                                    "of being quantum.\",\"id\":\"bk109\",\"title\":\"Paradox Lost\"," +
+                                    "\"publish_date\":\"2000-11-02\"}," +
+                                "{\"author\":\"O'Brien, Tim\",\"price\":36.95,\"genre\":\"Computer\"," +
+                                    "\"description\":\"Microsoft's .NET initiative is explored in \\r\\n      " +
+                                    "detail in this deep programmer's reference.\",\"id\":\"bk110\"," +
+                                    "\"title\":\"Microsoft .NET: The Programming Bible\",\"publish_date\":\"2000-12-09\"}," +
+                                "{\"author\":\"O'Brien, Tim\",\"price\":36.95,\"genre\":\"Computer\"," +
+                                    "\"description\":\"The Microsoft MSXML3 parser is covered in \\r\\n      " +
+                                    "detail, with attention to XML DOM interfaces, XSLT processing, \\r\\n      " +
+                                    "SAX and more.\",\"id\":\"bk111\",\"title\":\"MSXML3: A Comprehensive Guide\"," +
+                                    "\"publish_date\":\"2000-12-01\"},{\"author\":\"Galos, Mike\",\"price\":49.95," +
+                                    "\"genre\":\"Computer\",\"description\":\"Microsoft Visual Studio 7 is explored in depth,\\r\\n      " +
+                                    "looking at how Visual Basic, Visual C++, C#, and ASP+ are \\r\\n      " +
+                                    "integrated into a comprehensive development \\r\\n      " +
+                                    "environment.\",\"id\":\"bk112\",\"title\":\"Visual Studio 7: A Comprehensive Guide\"," +
+                                    "\"publish_date\":\"2001-04-16\"}]}}");
+                assertEquals("Small1.xml should replace array element", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLReplaceArrayElementMoreThanZero(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("simple2.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/foo/bar/1");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr,new JSONObject("{\"lorem\":99}"));
+                JSONObject expected = new JSONObject("{\"foo\":{\"bar\":[12,{\"lorem\":99},56]}}");
+                assertEquals("Simple2.xml should replace array element", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLReplaceArrayElementZeroNested(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/0/author");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr,new JSONObject("{\"foo\":999}"));
+                JSONObject expected = new JSONObject(
+                        "{\"catalog\":" +
+                                "{\"book\":" +
+                                "[{\"author\":{\"foo\":999},\"price\":44.95,\"genre\":\"Computer\"," +
+                                    "\"description\":\"An in-depth look at creating applications \\r\\n      with XML.\"," +
+                                    "\"id\":\"bk101\",\"title\":\"XML Developer's Guide\",\"publish_date\":\"2000-10-01\"}," +
+                                "{\"author\":\"Ralls, Kim\",\"price\":5.95,\"genre\":\"Fantasy\"," +
+                                    "\"description\":\"A former architect battles corporate zombies, \\r\\n      " +
+                                    "an evil sorceress, and her own childhood to become queen \\r\\n      " +
+                                    "of the world.\",\"id\":\"bk102\",\"title\":\"Midnight Rain\"," +
+                                    "\"publish_date\":\"2000-12-16\"}," +
+                                "{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\"," +
+                                    "\"description\":\"After the collapse of a nanotechnology \\r\\n      " +
+                                    "society in England, the young survivors lay the \\r\\n      " +
+                                    "foundation for a new society.\",\"id\":\"bk103\",\"title\":\"Maeve Ascendant\"," +
+                                    "\"publish_date\":\"2000-11-17\"}," +
+                                "{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\"," +
+                                    "\"description\":\"In post-apocalypse England, the mysterious \\r\\n      " +
+                                    "agent known only as Oberon helps to create a new life \\r\\n      " +
+                                    "for the inhabitants of London. Sequel to Maeve \\r\\n      " +
+                                    "Ascendant.\",\"id\":\"bk104\",\"title\":\"Oberon's Legacy\"," +
+                                    "\"publish_date\":\"2001-03-10\"}," +
+                                "{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\",\"description\":\"The two daughters of Maeve, half-sisters, \\r\\n      battle one another for control of England. Sequel to \\r\\n      Oberon's Legacy.\",\"id\":\"bk105\",\"title\":\"The Sundered Grail\",\"publish_date\":\"2001-09-10\"},{\"author\":\"Randall, Cynthia\",\"price\":4.95,\"genre\":\"Romance\",\"description\":\"When Carla meets Paul at an ornithology \\r\\n      conference, tempers fly as feathers get ruffled.\",\"id\":\"bk106\",\"title\":\"Lover Birds\",\"publish_date\":\"2000-09-02\"},{\"author\":\"Thurman, Paula\",\"price\":4.95,\"genre\":\"Romance\",\"description\":\"A deep sea diver finds true love twenty \\r\\n      thousand leagues beneath the sea.\",\"id\":\"bk107\",\"title\":\"Splish Splash\",\"publish_date\":\"2000-11-02\"},{\"author\":\"Knorr, Stefan\",\"price\":4.95,\"genre\":\"Horror\",\"description\":\"An anthology of horror stories about roaches,\\r\\n      centipedes, scorpions  and other insects.\",\"id\":\"bk108\",\"title\":\"Creepy Crawlies\",\"publish_date\":\"2000-12-06\"},{\"author\":\"Kress, Peter\",\"price\":6.95,\"genre\":\"Science Fiction\",\"description\":\"After an inadvertant trip through a Heisenberg\\r\\n      Uncertainty Device, James Salway discovers the problems \\r\\n      of being quantum.\",\"id\":\"bk109\",\"title\":\"Paradox Lost\",\"publish_date\":\"2000-11-02\"},{\"author\":\"O'Brien, Tim\",\"price\":36.95,\"genre\":\"Computer\",\"description\":\"Microsoft's .NET initiative is explored in \\r\\n      detail in this deep programmer's reference.\",\"id\":\"bk110\",\"title\":\"Microsoft .NET: The Programming Bible\",\"publish_date\":\"2000-12-09\"},{\"author\":\"O'Brien, Tim\",\"price\":36.95,\"genre\":\"Computer\",\"description\":\"The Microsoft MSXML3 parser is covered in \\r\\n      detail, with attention to XML DOM interfaces, XSLT processing, \\r\\n      SAX and more.\",\"id\":\"bk111\",\"title\":\"MSXML3: A Comprehensive Guide\",\"publish_date\":\"2000-12-01\"},{\"author\":\"Galos, Mike\",\"price\":49.95,\"genre\":\"Computer\",\"description\":\"Microsoft Visual Studio 7 is explored in depth,\\r\\n      looking at how Visual Basic, Visual C++, C#, and ASP+ are \\r\\n      integrated into a comprehensive development \\r\\n      environment.\",\"id\":\"bk112\",\"title\":\"Visual Studio 7: A Comprehensive Guide\",\"publish_date\":\"2001-04-16\"}]}}");
+                assertEquals("Small1.xml should replace array element", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLReplaceArrayElementMoreThanZeroNested(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/catalog/book/1/price");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr,new JSONObject("{\"foo\":999}"));
+                JSONObject expected = new JSONObject(
+                        "{\"catalog\":" +
+                                "{\"book\":" +
+                                "[{\"author\":\"Gambardella, Matthew\",\"price\":44.95,\"genre\":\"Computer\"," +
+                                "\"description\":\"An in-depth look at creating applications \\r\\n      with XML.\"," +
+                                "\"id\":\"bk101\",\"title\":\"XML Developer's Guide\",\"publish_date\":\"2000-10-01\"}," +
+                                "{\"author\":\"Ralls, Kim\",\"price\":{\"foo\":999},\"genre\":\"Fantasy\",\"description\":\"A former architect battles corporate zombies, \\r\\n      an evil sorceress, and her own childhood to become queen \\r\\n      of the world.\",\"id\":\"bk102\",\"title\":\"Midnight Rain\",\"publish_date\":\"2000-12-16\"},{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\",\"description\":\"After the collapse of a nanotechnology \\r\\n      society in England, the young survivors lay the \\r\\n      foundation for a new society.\",\"id\":\"bk103\",\"title\":\"Maeve Ascendant\",\"publish_date\":\"2000-11-17\"},{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\",\"description\":\"In post-apocalypse England, the mysterious \\r\\n      agent known only as Oberon helps to create a new life \\r\\n      for the inhabitants of London. Sequel to Maeve \\r\\n      Ascendant.\",\"id\":\"bk104\",\"title\":\"Oberon's Legacy\",\"publish_date\":\"2001-03-10\"},{\"author\":\"Corets, Eva\",\"price\":5.95,\"genre\":\"Fantasy\",\"description\":\"The two daughters of Maeve, half-sisters, \\r\\n      battle one another for control of England. Sequel to \\r\\n      Oberon's Legacy.\",\"id\":\"bk105\",\"title\":\"The Sundered Grail\",\"publish_date\":\"2001-09-10\"},{\"author\":\"Randall, Cynthia\",\"price\":4.95,\"genre\":\"Romance\",\"description\":\"When Carla meets Paul at an ornithology \\r\\n      conference, tempers fly as feathers get ruffled.\",\"id\":\"bk106\",\"title\":\"Lover Birds\",\"publish_date\":\"2000-09-02\"},{\"author\":\"Thurman, Paula\",\"price\":4.95,\"genre\":\"Romance\",\"description\":\"A deep sea diver finds true love twenty \\r\\n      thousand leagues beneath the sea.\",\"id\":\"bk107\",\"title\":\"Splish Splash\",\"publish_date\":\"2000-11-02\"},{\"author\":\"Knorr, Stefan\",\"price\":4.95,\"genre\":\"Horror\",\"description\":\"An anthology of horror stories about roaches,\\r\\n      centipedes, scorpions  and other insects.\",\"id\":\"bk108\",\"title\":\"Creepy Crawlies\",\"publish_date\":\"2000-12-06\"},{\"author\":\"Kress, Peter\",\"price\":6.95,\"genre\":\"Science Fiction\",\"description\":\"After an inadvertant trip through a Heisenberg\\r\\n      Uncertainty Device, James Salway discovers the problems \\r\\n      of being quantum.\",\"id\":\"bk109\",\"title\":\"Paradox Lost\",\"publish_date\":\"2000-11-02\"},{\"author\":\"O'Brien, Tim\",\"price\":36.95,\"genre\":\"Computer\",\"description\":\"Microsoft's .NET initiative is explored in \\r\\n      detail in this deep programmer's reference.\",\"id\":\"bk110\",\"title\":\"Microsoft .NET: The Programming Bible\",\"publish_date\":\"2000-12-09\"},{\"author\":\"O'Brien, Tim\",\"price\":36.95,\"genre\":\"Computer\",\"description\":\"The Microsoft MSXML3 parser is covered in \\r\\n      detail, with attention to XML DOM interfaces, XSLT processing, \\r\\n      SAX and more.\",\"id\":\"bk111\",\"title\":\"MSXML3: A Comprehensive Guide\",\"publish_date\":\"2000-12-01\"},{\"author\":\"Galos, Mike\",\"price\":49.95,\"genre\":\"Computer\",\"description\":\"Microsoft Visual Studio 7 is explored in depth,\\r\\n      looking at how Visual Basic, Visual C++, C#, and ASP+ are \\r\\n      integrated into a comprehensive development \\r\\n      environment.\",\"id\":\"bk112\",\"title\":\"Visual Studio 7: A Comprehensive Guide\",\"publish_date\":\"2001-04-16\"}]}}");
+                assertEquals("Small1.xml should replace array element", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void testXMLExtractSurfaceError(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/book/0");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr);
+                assertEquals("Extract path error returns empty JSONObject", "{}", actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void testXMLReplaceSurfaceError(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer ptr = new JSONPointer("/book/0");
+                JSONObject actual = XML.toJSONObject(xmlReader, ptr, new JSONObject("{}"));
+                InputStream xmlStream2 = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader2 = new InputStreamReader(xmlStream2);
+                JSONObject expected = XML.toJSONObject(xmlReader2);
+                assertEquals("Replace path error returns original JSONObject", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+/*
+    @Test
+    public void testXMLPointerConventions(){
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONObject actual = XML.toJSONObject(xmlReader);
+                Object actualResult = actual.query("/catalog/book/0");
+                InputStream xmlStream2 = XMLTest.class.getClassLoader().getResourceAsStream("small1.xml");
+                Reader xmlReader2 = new InputStreamReader(xmlStream2);
+                JSONObject expected = new JSONObject(xmlReader2);
+                Object actualExpected = expected.query("/catalog/0");
+                assertEquals("These two pointers should be the same", expected.toString(), actual.toString());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }*/
+
 }
