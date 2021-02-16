@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 
 /**
@@ -659,6 +660,10 @@ public class XML {
             }
         }
         return jo;
+    }
+
+    public static XMLtoJSONStream toJSONObjectStream (Reader reader){
+        return new XMLtoJSONStream(new XMLTokener(reader));
     }
 
     /**
