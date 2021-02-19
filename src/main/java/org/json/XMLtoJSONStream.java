@@ -211,7 +211,7 @@ public class XMLtoJSONStream{
         return this;
     }
 
-    private JSONObject collect(){
+    private JSONObject collectToJSON(){
         JSONObject master = new JSONObject();
         Iterator<JSONObject> iter = jsonStream.iterator();
         while (iter.hasNext()){
@@ -224,10 +224,67 @@ public class XMLtoJSONStream{
     }
 
     public Writer write(Writer a){
-        return collect().write(a);
+        return collectToJSON().write(a);
     }
 
     public JSONObject streamToJSON(){
-        return collect();
+        return collectToJSON();
     }
+
+    public XMLtoJSONStream distinct(){
+        jsonStream = jsonStream.distinct();
+        return this;
+    }
+    public boolean allMatch(Predicate p){
+        return jsonStream.allMatch(p);
+    }
+    public boolean anyMatch(Predicate p){
+        return jsonStream.anyMatch(p);
+    }
+    public XMLtoJSONStream limit(long s){
+        jsonStream = jsonStream.limit(s);
+        return this;
+    }
+    public boolean noneMatch(Predicate p){
+        return jsonStream.noneMatch(p);
+    }
+    public XMLtoJSONStream peek(Consumer c){
+        jsonStream = jsonStream.peek(c);
+        return this;
+    }
+    public XMLtoJSONStream skip(long n){
+        jsonStream = jsonStream.skip(n);
+        return this;
+    }
+    public XMLtoJSONStream sorted(Comparator c){
+        jsonStream = jsonStream.sorted(c);
+        return this;
+    }
+    public Object[] toArray(){
+        return jsonStream.toArray();
+    }
+    public XMLtoJSONStream flatMap(Function f){
+        jsonStream = jsonStream.flatMap(f);
+        return this;
+    }
+    public DoubleStream flatMapToDouble(Function f){
+        return jsonStream.flatMapToDouble(f);
+    }
+    public IntStream flatMapToInt(Function f){
+        return jsonStream.flatMapToInt(f);
+    }
+    public LongStream flatMapToLong(Function f){
+        return jsonStream.flatMapToLong(f);
+    }
+    public void forEach(Consumer a){
+        jsonStream.forEach(a);
+    }
+    public void forEachOrdered(Consumer a){
+        jsonStream.forEachOrdered(a);
+    }
+    public XMLtoJSONStream map(Function f){
+        jsonStream = jsonStream.map(f);
+        return this;
+    }
+
 }
