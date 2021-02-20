@@ -662,6 +662,19 @@ public class XML {
         return jo;
     }
 
+    /**
+     * Milestone 4: Streams
+     * XMLtoJSONStream streams top-level elements of a XML file
+     * Architecture of org.json makes recursion into a JSONObject
+     * insanely difficult, even when the entire JSONObject is loaded into memory.
+     * Therefore, it may be helpful for a developer to have access to all of the
+     * top-level JSONObjects when reading the XML file.
+     * This allows developers to manipulate JSONObjects in a stream formate while
+     * not having the JSONObject loaded into memory.
+     *
+     * @param reader
+     * @return a XMLtoJSONStream object
+     */
     public static XMLtoJSONStream toJSONObjectStream (Reader reader){
         return new XMLtoJSONStream(new XMLTokener(reader));
     }
