@@ -36,15 +36,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -2357,9 +2350,98 @@ public class JSONObject {
     }
 
 
+    /**
+     * toStream
+     * added in for milestone 4
+     * streams out contents of a jsonobject
+     * @return a stream of entryset objects
+     */
+    public Stream<Entry<JSONPointer, Object>> toStream(){
+        ArrayList<Entry<JSONPointer, Object>> toStreamList = new ArrayList<>();
+        for (Entry<String, Object> entry : map.entrySet()){
+            Object currentValue = entry.getValue();
+            String currentKey = entry.getKey();
+            toStreamList.add(new AbstractMap.SimpleEntry<>(
+                    new JSONPointer("/"+ currentKey),
+                    currentValue
+                    )
+            );
+            if (isInteresting(currentValue)){
+                ArrayList<Entry<JSONPointer, Object>> temp = toStreamHelperGeneric(
+                        currentValue,
+                        new ArrayList<>(Arrays.asList(currentKey)));
+                toStreamList.addAll(temp);
+            }
+        }
+        return toStreamList.stream();
+    }
 
-    public Stream<Entry<String, Object>> toStream(){
-        return map.entrySet().stream();
+    private boolean isInteresting(Object j){
+        if (j instanceof JSONArray || j instanceof JSONObject){
+            return true;
+        }
+        return false;
+    }
+
+    private ArrayList<Entry<JSONPointer, Object>> toStreamHelperGeneric(Object j, ArrayList<String> path){
+        if (j instanceof JSONObject){
+            return toStreamHelperJSONObject((JSONObject) j, path);
+        }
+        else if (j instanceof JSONArray){
+            return toStreamHelperJSONArray((JSONArray) j, path);
+        }
+        return new ArrayList<>();
+    }
+
+    private ArrayList<Entry<JSONPointer, Object>> toStreamHelperJSONArray(JSONArray j, ArrayList<String> path){
+        ArrayList<Entry<JSONPointer, Object>> toStreamList = new ArrayList<>();
+        int counter = 0;
+        for (Object o : j.toList()){
+            ArrayList<String> newPath = (ArrayList<String>)path.clone();
+            newPath.add(Integer.toString(counter));
+            JSONPointer.Builder currentBuilder = JSONPointer.builder();
+            for (String p : newPath){
+                currentBuilder.append(p);
+            }
+            toStreamList.add(new AbstractMap.SimpleEntry<>(
+                    currentBuilder.build(),
+                    o
+            ));
+            if (isInteresting(o)){
+                toStreamList.addAll(
+                        toStreamHelperGeneric(o, newPath)
+                );
+            }
+            counter++;
+        }
+        return toStreamList;
+    }
+
+    private ArrayList<Entry<JSONPointer, Object>> toStreamHelperJSONObject(JSONObject j, ArrayList<String> path){
+        ArrayList<Entry<JSONPointer, Object>> toStreamList = new ArrayList<>();
+        for (Entry<String, Object> entry : j.entrySet()){
+            Object currentValue = entry.getValue();
+            String currentKey = entry.getKey();
+            JSONPointer.Builder currentBuilder = JSONPointer.builder();
+            for (String p : path){
+                currentBuilder.append(p);
+            }
+            currentBuilder.append(currentKey);
+            toStreamList.add(new AbstractMap.SimpleEntry<>(
+                            currentBuilder.build(),
+                            currentValue
+                    )
+            );
+            ArrayList<String> newPath = (ArrayList<String>)path.clone();
+            newPath.add(currentKey);
+            if (isInteresting(currentValue)){
+                toStreamList.addAll(toStreamHelperGeneric(
+                        currentValue,
+                        newPath)
+                );
+            }
+        }
+        return toStreamList;
     }
 
     /**

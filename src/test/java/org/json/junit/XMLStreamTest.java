@@ -148,8 +148,8 @@ public class XMLStreamTest {
                 xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("simple3.xml");
                 Reader xmlReader = new InputStreamReader(xmlStream);
                 JSONObject tester = XML.toJSONObject(xmlReader);
-                List<Map.Entry<String, Object>> res = tester.toStream().collect(Collectors.toList());
-                String expectedStr = "[bar1=12, bar2=34, bar3=56]";
+                List<Map.Entry<JSONPointer, Object>> res = tester.toStream().collect(Collectors.toList());
+                String expectedStr = "[/bar1=12, /bar2=34, /bar3=56]";
                 assertEquals("simple1.xml JSON", expectedStr,res.toString());
             } finally {
                 if (xmlStream != null){
@@ -168,10 +168,30 @@ public class XMLStreamTest {
                 xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("simple3.xml");
                 Reader xmlReader = new InputStreamReader(xmlStream);
                 JSONObject tester = XML.toJSONObject(xmlReader);
-                Predicate<Map.Entry<String, Object>> match = p->!p.getValue().toString().equals("12");
-                List<Map.Entry<String, Object>> res = tester.toStream().filter(match).collect(Collectors.toList());
-                String expectedStr = "[bar2=34, bar3=56]";
+                Predicate<Map.Entry<JSONPointer, Object>> match = p->!p.getValue().toString().equals("12");
+                List<Map.Entry<JSONPointer, Object>> res = tester.toStream().filter(match).collect(Collectors.toList());
+                String expectedStr = "[/bar2=34, /bar3=56]";
                 assertEquals("simple1.xml JSON", expectedStr,res.toString());
+            } finally {
+                if (xmlStream != null){
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e){
+            fail ("file writer error: " + e.getMessage());
+        }
+    }
+    @Test
+    public void testXMLStreamPreBuiltObjectWithArray(){
+        try{
+            InputStream xmlStream = null;
+            try{
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("simple2.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONObject tester = XML.toJSONObject(xmlReader);
+                List<Map.Entry<JSONPointer, Object>> res = tester.toStream().collect(Collectors.toList());
+                String expectedStr = "[/foo={\"bar\":[12,34,56]}, /foo/bar=[12,34,56], /foo/bar/0=12, /foo/bar/1=34, /foo/bar/2=56]";
+                assertEquals("simple2.xml JSON", expectedStr,res.toString());
             } finally {
                 if (xmlStream != null){
                     xmlStream.close();
