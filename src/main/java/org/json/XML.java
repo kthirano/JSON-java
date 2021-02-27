@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -660,6 +661,43 @@ public class XML {
             }
         }
         return jo;
+    }
+
+
+    private static class asyncJSON implements Runnable{
+        private Thread t;
+        private Reader r;
+        private Consumer<JSONObject> onComplete;
+        private Consumer<Exception> onFail;
+        public asyncJSON(Reader reader, Consumer<JSONObject> onComplete, Consumer<Exception> onFail){
+            this.onComplete = onComplete;
+            this.onFail = onFail;
+            r = reader;
+            t = new Thread(this);
+            t.start();
+        }
+        public void run(){
+            try{
+                JSONObject jsonObject = toJSONObject(r);
+                onComplete.accept(jsonObject);
+            } catch (Exception e){onFail.accept(e);}
+        }
+        public Thread getThread(){
+            return t;
+        }
+    }
+    /**
+     *Milestone 5: Asynchronous methods
+     * User can specify a reader, a consumer object that acts on the completed JSONObject,
+     * and another consumer object that acts on the exception if parsing were to fail.
+     * @param reader
+     * @param onComplete function executed on JSONObject parsing completion.
+     * @param onFail function executed on JSONObject parsing error.
+     * @return the thread that the parsing is being executed on.
+     */
+    public static Thread toJSONObject(Reader reader, Consumer<JSONObject> onComplete, Consumer<Exception> onFail){
+        asyncJSON a = new asyncJSON(reader, onComplete, onFail);
+        return a.getThread();
     }
 
     /**
